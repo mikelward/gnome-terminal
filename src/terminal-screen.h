@@ -107,6 +107,8 @@ void        terminal_screen_set_override_title     (TerminalScreen *screen,
 const char *terminal_screen_get_dynamic_title      (TerminalScreen *screen);
 const char *terminal_screen_get_dynamic_icon_title (TerminalScreen *screen);
 
+gboolean terminal_screen_get_bell_raised (TerminalScreen *screen);
+
 char *terminal_screen_get_current_dir (TerminalScreen *screen);
 char *terminal_screen_get_current_dir_with_fallback (TerminalScreen *screen);
 

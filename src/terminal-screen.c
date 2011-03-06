@@ -73,6 +73,7 @@ struct _TerminalScreenPrivate
   double font_scale;
   gboolean user_title; /* title was manually set */
   GSList *match_tags;
+  gboolean bell_raised;
   guint launch_child_source_id;
 };
 
@@ -92,7 +93,8 @@ enum {
   PROP_ICON_TITLE_SET,
   PROP_OVERRIDE_COMMAND,
   PROP_TITLE,
-  PROP_INITIAL_ENVIRONMENT
+  PROP_INITIAL_ENVIRONMENT,
+  PROP_BELL_RAISED
 };
 
 enum
@@ -121,6 +123,10 @@ static void terminal_screen_change_font (TerminalScreen *screen);
 static gboolean terminal_screen_popup_menu (GtkWidget *widget);
 static gboolean terminal_screen_button_press (GtkWidget *widget,
                                               GdkEventButton *event);
+static gboolean terminal_screen_focus_in (GtkWidget *widget,
+                                          GdkEventFocus *event);
+static gboolean terminal_screen_key_press (GtkWidget *widget,
+                                           GdkEventKey *event);
 static void terminal_screen_launch_child_on_idle (TerminalScreen *screen);
 static void terminal_screen_child_exited  (VteTerminal *terminal);
 
@@ -240,6 +246,29 @@ static void
 free_tag_data (TagData *tagdata)
 {
   g_slice_free (TagData, tagdata);
+}
+
+gboolean
+terminal_screen_get_bell_raised (TerminalScreen *screen)
+{
+  return screen->priv->bell_raised;
+}
+
+static void
+terminal_screen_set_bell_raised (TerminalScreen *screen,
+                                 gboolean raised)
+{
+  screen->priv->bell_raised = raised;
+  g_object_notify (G_OBJECT (screen), "bell-raised");
+}
+
+static void
+terminal_screen_beep (VteTerminal *terminal)
+{
+  TerminalScreen *screen = TERMINAL_SCREEN (terminal);
+
+  terminal_screen_set_bell_raised (screen, TRUE);
+  g_object_notify (G_OBJECT (screen), "bell-raised");
 }
 
 static void
@@ -406,6 +435,8 @@ terminal_screen_init (TerminalScreen *screen)
 
   priv->override_title = NULL;
   priv->user_title = FALSE;
+
+  priv->bell_raised = FALSE;
   
   g_signal_connect (screen, "window-title-changed",
                     G_CALLBACK (terminal_screen_window_title_changed),
@@ -454,6 +485,9 @@ terminal_screen_get_property (GObject *object,
       case PROP_TITLE:
         g_value_set_string (value, terminal_screen_get_title (screen));
         break;
+      case PROP_BELL_RAISED:
+        g_value_set_boolean (value, terminal_screen_get_bell_raised (screen));
+        break;
       default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -484,6 +518,9 @@ terminal_screen_set_property (GObject *object,
       case PROP_INITIAL_ENVIRONMENT:
         terminal_screen_set_initial_environment (screen, g_value_get_boxed (value));
         break;
+      case PROP_BELL_RAISED:
+        terminal_screen_set_bell_raised (screen, g_value_get_boolean (value));
+        break;
       case PROP_ICON_TITLE:
       case PROP_ICON_TITLE_SET:
       case PROP_TITLE:
@@ -513,8 +550,11 @@ terminal_screen_class_init (TerminalScreenClass *klass)
   widget_class->drag_data_received = terminal_screen_drag_data_received;
   widget_class->button_press_event = terminal_screen_button_press;
   widget_class->popup_menu = terminal_screen_popup_menu;
+  widget_class->focus_in_event = terminal_screen_focus_in;
+  widget_class->key_press_event = terminal_screen_key_press;
 
   terminal_class->child_exited = terminal_screen_child_exited;
+  terminal_class->beep = terminal_screen_beep;
 
   signals[PROFILE_SET] =
     g_signal_new (I_("profile-set"),
@@ -598,6 +638,13 @@ terminal_screen_class_init (TerminalScreenClass *klass)
      g_param_spec_boxed ("initial-environment", NULL, NULL,
                          G_TYPE_STRV,
                          G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
+
+  g_object_class_install_property
+    (object_class,
+     PROP_BELL_RAISED,
+     g_param_spec_boolean ("bell-raised", NULL, NULL,
+                           FALSE,
+                           G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 
   g_type_class_add_private (object_class, sizeof (TerminalScreenPrivate));
 
@@ -1594,6 +1641,36 @@ terminal_screen_popup_menu (GtkWidget *widget)
   terminal_screen_popup_info_unref (info);
 
   return TRUE;
+}
+
+static gboolean
+terminal_screen_focus_in (GtkWidget *widget,
+                          GdkEventFocus *event)
+{
+  gboolean (* parent_focus_in) (GtkWidget *widget, GdkEventFocus *event) =
+    GTK_WIDGET_CLASS (terminal_screen_parent_class)->focus_in_event;
+
+  terminal_screen_set_bell_raised (TERMINAL_SCREEN (widget), FALSE);
+
+  if (parent_focus_in)
+    return parent_focus_in (widget, event);
+
+  return FALSE;
+}
+
+static gboolean
+terminal_screen_key_press (GtkWidget *widget,
+                           GdkEventKey *event)
+{
+  gboolean (* parent_key_press) (GtkWidget *widget, GdkEventKey *event) =
+    GTK_WIDGET_CLASS (terminal_screen_parent_class)->key_press_event;
+
+  terminal_screen_set_bell_raised (TERMINAL_SCREEN (widget), FALSE);
+
+  if (parent_key_press)
+    return parent_key_press (widget, event);
+
+  return FALSE;
 }
 
 static gboolean
