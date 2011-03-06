@@ -1392,6 +1392,49 @@ screen_match_clicked_cb (TerminalScreen *screen,
 }
 
 static void
+terminal_window_set_urgent (TerminalWindow *window,
+                            gboolean urgent)
+{
+  gtk_window_set_urgency_hint (GTK_WINDOW (window), urgent);
+}
+
+static void
+screen_bell_raised_cb (TerminalScreen *screen,
+                       GParamSpec *pspec,
+                       TerminalWindow *window)
+{
+
+  gboolean bell_raised;
+  bell_raised = terminal_screen_get_bell_raised (screen);
+
+  if (bell_raised)
+    {
+      gboolean set_urgent;
+
+      set_urgent = terminal_profile_get_property_boolean (terminal_screen_get_profile (screen),
+                                                          TERMINAL_PROFILE_URGENT_WINDOW_ON_BELL);
+
+      if (set_urgent)
+        {
+          gboolean set_urgent_on_focused;
+          gboolean has_toplevel_focus;
+
+          set_urgent_on_focused = terminal_profile_get_property_boolean (terminal_screen_get_profile (screen),
+                                                                         TERMINAL_PROFILE_URGENT_FOCUSED_WINDOW_ON_BELL);
+
+          g_object_get (window, "has-toplevel-focus", &has_toplevel_focus, NULL);
+
+          if (!has_toplevel_focus || set_urgent_on_focused)
+            terminal_window_set_urgent (window, TRUE);
+        }
+    }
+  else
+    {
+      terminal_window_set_urgent (window, FALSE);
+    }
+}
+
+static void
 screen_close_cb (TerminalScreen *screen,
                  TerminalWindow *window)
 {
@@ -2768,6 +2811,9 @@ notebook_page_added_callback (GtkWidget       *notebook,
   g_signal_connect (screen, "close-screen",
                     G_CALLBACK (screen_close_cb), window);
 
+  g_signal_connect (screen, "notify::bell-raised",
+                    G_CALLBACK (screen_bell_raised_cb), window);
+
   update_tab_visibility (window, 0);
   terminal_window_update_tabs_menu_sensitivity (window);
   terminal_window_update_search_sensitivity (screen, window);
@@ -2848,6 +2894,10 @@ notebook_page_removed_callback (GtkWidget       *notebook,
 
   g_signal_handlers_disconnect_by_func (screen,
                                         G_CALLBACK (screen_close_cb),
+                                        window);
+
+  g_signal_handlers_disconnect_by_func (screen,
+                                        G_CALLBACK (screen_bell_raised_cb),
                                         window);
 
   terminal_window_update_tabs_menu_sensitivity (window);
