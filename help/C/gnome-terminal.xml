@@ -866,6 +866,24 @@ text-based commands through a shell such as Bash.
              </listitem> 
           </varlistentry> 
           <varlistentry> 
+             <term>
+                 <guilabel>Bold the tab title when the terminal rings the bell</guilabel> </term> 
+             <listitem> 
+                 <para>
+                   Select this option to make the tab's title bold if the terminal rings the bell.
+                 </para>
+              </listitem> 
+           </varlistentry> 
+           <varlistentry> 
+             <term>
+                 <guilabel>...even if I'm working in that tab</guilabel> </term> 
+             <listitem> 
+                 <para>
+                     Select this option to make the above option apply even if the tab is focused.
+                 </para>
+              </listitem> 
+           </varlistentry> 
+          <varlistentry> 
              <term> 
                 <guilabel>Select-by-word characters</guilabel> </term> 
              <listitem> 
