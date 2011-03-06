@@ -231,6 +231,17 @@ profile_notify_sensitivity_cb (TerminalProfile *profile,
     SET_SENSITIVE ("bell-checkbutton",
                    !terminal_profile_property_locked (profile, TERMINAL_PROFILE_SILENT_BELL));
 
+   if (!prop_name ||
+       prop_name == I_(TERMINAL_PROFILE_HIGHLIGHT_TAB_ON_BELL) ||
+       prop_name == I_(TERMINAL_PROFILE_HIGHLIGHT_FOCUSED_TAB_ON_BELL))
+     {
+       SET_SENSITIVE ("highlight-tab-on-bell-checkbutton",
+                      !terminal_profile_property_locked (profile, TERMINAL_PROFILE_HIGHLIGHT_TAB_ON_BELL));
+       SET_SENSITIVE ("highlight-focused-tab-on-bell-checkbutton",
+                      terminal_profile_get_property_boolean (profile, TERMINAL_PROFILE_HIGHLIGHT_TAB_ON_BELL) &&
+                      !terminal_profile_property_locked (profile, TERMINAL_PROFILE_HIGHLIGHT_FOCUSED_TAB_ON_BELL));
+     }
+
   if (!prop_name || prop_name == I_(TERMINAL_PROFILE_WORD_CHARS))
     SET_SENSITIVE ("word-chars-entry",
                    !terminal_profile_property_locked (profile, TERMINAL_PROFILE_WORD_CHARS));
@@ -890,6 +901,8 @@ terminal_profile_edit (TerminalProfile *profile,
   CONNECT ("exit-action-combobox", TERMINAL_PROFILE_EXIT_ACTION);
   CONNECT ("font-selector", TERMINAL_PROFILE_FONT);
   CONNECT ("foreground-colorpicker", TERMINAL_PROFILE_FOREGROUND_COLOR);
+  CONNECT ("highlight-tab-on-bell-checkbutton", TERMINAL_PROFILE_HIGHLIGHT_TAB_ON_BELL);
+  CONNECT ("highlight-focused-tab-on-bell-checkbutton", TERMINAL_PROFILE_HIGHLIGHT_FOCUSED_TAB_ON_BELL);
   CONNECT ("image-radiobutton", TERMINAL_PROFILE_BACKGROUND_TYPE);
   CONNECT ("login-shell-checkbutton", TERMINAL_PROFILE_LOGIN_SHELL);
   CONNECT ("profile-name-entry", TERMINAL_PROFILE_VISIBLE_NAME);

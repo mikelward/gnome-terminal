@@ -63,6 +63,44 @@ close_button_clicked_cb (GtkWidget *widget,
 }
 
 static void
+sync_bell_raised (TerminalScreen *screen,
+                  GParamSpec *pspec,
+                  TerminalTabLabel *tab_label)
+{
+  gboolean bell_raised;
+
+  bell_raised = terminal_screen_get_bell_raised (screen);
+
+  if (bell_raised)
+    {
+      gboolean should_highlight;
+
+      should_highlight = terminal_profile_get_property_boolean (
+          terminal_screen_get_profile (screen),
+          TERMINAL_PROFILE_HIGHLIGHT_TAB_ON_BELL);
+
+      if (should_highlight)
+        {
+          gboolean screen_has_focus;
+          gboolean highlight_focused;
+
+          g_object_get (screen, "has-focus", &screen_has_focus, NULL);
+
+          highlight_focused = terminal_profile_get_property_boolean (
+              terminal_screen_get_profile (screen),
+              TERMINAL_PROFILE_HIGHLIGHT_FOCUSED_TAB_ON_BELL);
+
+          if (!screen_has_focus || highlight_focused)
+            {
+              terminal_tab_label_set_bold (tab_label, TRUE);
+            }
+        }
+    }
+  else
+    terminal_tab_label_set_bold (tab_label, FALSE);
+}
+
+static void
 sync_tab_label (TerminalScreen *screen,
                 GParamSpec *pspec,
                 GtkWidget *label)
@@ -130,6 +168,10 @@ terminal_tab_label_constructor (GType type,
   priv->close_button = close_button = terminal_close_button_new ();
   gtk_widget_set_tooltip_text (close_button, _("Close tab"));
   gtk_box_pack_end (GTK_BOX (hbox), close_button, FALSE, FALSE, 0);
+
+  sync_bell_raised (priv->screen, FALSE, tab_label);
+  g_signal_connect (priv->screen, "notify::bell-raised",
+                    G_CALLBACK (sync_bell_raised), tab_label);
 
   sync_tab_label (priv->screen, NULL, label);
   g_signal_connect (priv->screen, "notify::title",

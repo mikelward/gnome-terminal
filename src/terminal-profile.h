@@ -84,6 +84,8 @@ typedef enum
 #define TERMINAL_PROFILE_EXIT_ACTION            "exit-action"
 #define TERMINAL_PROFILE_FONT                   "font"
 #define TERMINAL_PROFILE_FOREGROUND_COLOR       "foreground-color"
+#define TERMINAL_PROFILE_HIGHLIGHT_TAB_ON_BELL  "highlight-tab-on-bell"
+#define TERMINAL_PROFILE_HIGHLIGHT_FOCUSED_TAB_ON_BELL  "highlight-focused-tab-on-bell"
 #define TERMINAL_PROFILE_LOGIN_SHELL            "login-shell"
 #define TERMINAL_PROFILE_NAME                   "name"
 #define TERMINAL_PROFILE_PALETTE                "palette"
