@@ -883,6 +883,25 @@ text-based commands through a shell such as Bash.
                  </para>
               </listitem> 
            </varlistentry> 
+           <varlistentry> 
+             <term>
+                 <guilabel>Flash the window's entry in the window list when the terminal rings the bell</guilabel> </term> 
+             <listitem> 
+                 <para>
+                   Select this option to make the window icon in the taskbar flash if the terminal rings the bell.
+                 </para>
+              </listitem> 
+           </varlistentry> 
+           <varlistentry> 
+             <term>
+                 <guilabel>...even if I'm working in that window</guilabel> </term> 
+             <listitem> 
+                 <para>
+                     Select this option to make the above option apply even if the window is focused.
+                 </para>
+              </listitem> 
+           </varlistentry> 
+
           <varlistentry> 
              <term> 
                 <guilabel>Select-by-word characters</guilabel> </term> 

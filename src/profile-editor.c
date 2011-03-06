@@ -242,6 +242,17 @@ profile_notify_sensitivity_cb (TerminalProfile *profile,
                       !terminal_profile_property_locked (profile, TERMINAL_PROFILE_HIGHLIGHT_FOCUSED_TAB_ON_BELL));
      }
 
+   if (!prop_name ||
+       prop_name == I_(TERMINAL_PROFILE_URGENT_WINDOW_ON_BELL) ||
+       prop_name == I_(TERMINAL_PROFILE_URGENT_FOCUSED_WINDOW_ON_BELL))
+     {
+       SET_SENSITIVE ("urgent-window-on-bell-checkbutton",
+                      !terminal_profile_property_locked (profile, TERMINAL_PROFILE_URGENT_WINDOW_ON_BELL));
+       SET_SENSITIVE ("urgent-focused-window-on-bell-checkbutton",
+                      terminal_profile_get_property_boolean (profile, TERMINAL_PROFILE_URGENT_WINDOW_ON_BELL) &&
+                      !terminal_profile_property_locked (profile, TERMINAL_PROFILE_URGENT_FOCUSED_WINDOW_ON_BELL));
+     }
+
   if (!prop_name || prop_name == I_(TERMINAL_PROFILE_WORD_CHARS))
     SET_SENSITIVE ("word-chars-entry",
                    !terminal_profile_property_locked (profile, TERMINAL_PROFILE_WORD_CHARS));
@@ -919,6 +930,8 @@ terminal_profile_edit (TerminalProfile *profile,
   CONNECT ("title-mode-combobox", TERMINAL_PROFILE_TITLE_MODE);
   CONNECT ("transparent-radiobutton", TERMINAL_PROFILE_BACKGROUND_TYPE);
   CONNECT ("update-records-checkbutton", TERMINAL_PROFILE_UPDATE_RECORDS);
+  CONNECT ("urgent-window-on-bell-checkbutton", TERMINAL_PROFILE_URGENT_WINDOW_ON_BELL);
+  CONNECT ("urgent-focused-window-on-bell-checkbutton", TERMINAL_PROFILE_URGENT_FOCUSED_WINDOW_ON_BELL);
   CONNECT ("use-custom-command-checkbutton", TERMINAL_PROFILE_USE_CUSTOM_COMMAND);
   CONNECT ("use-custom-default-size-checkbutton", TERMINAL_PROFILE_USE_CUSTOM_DEFAULT_SIZE);
   CONNECT ("use-theme-colors-checkbutton", TERMINAL_PROFILE_USE_THEME_COLORS);
